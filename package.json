@@ -1,0 +1,22 @@
+{
+  "name": "fileberen",
+  "version": "1.0.0",
+  "description": "This application will help the members of a network transfer files to one another. This is useful for fast transfer of files between computers without the need to creating an FTP server, etc.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BERENGENITA/fileberen.git"
+  },
+  "author": "Javier G. Nieto (Beren)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BERENGENITA/fileberen/issues"
+  },
+  "homepage": "https://github.com/BERENGENITA/fileberen#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
