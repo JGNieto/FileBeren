@@ -10,21 +10,26 @@ let config = JSON.parse(fs.readFileSync("config.json"))
 if (!config.storage_directory.endsWith("/")) config.storage_directory = config.storage_directory + "/"
 
 // Initialise database file if it does not exist:
-fs.writeFile("database.json", "{}", { flag: 'wx' }, function (err) {
-    if (err) {
-        console.log("Database not created. Probably already exists!")
-        return
-    }
-    console.log("Database  initialised.");
-});
-let database = JSON.parse(fs.readFileSync("database.json"))
+
+
+let database = null
+
+try {
+    database = JSON.parse(fs.readFileSync("database.json"))
+} catch (e) {
+    fs.writeFileSync("database.json", "{}")
+    database = {}
+}
+
+if (database == null) process.exit(1)
+
 
 // HTML
 const index = fs.readFileSync("pages/index.html")
 const upload_form = fs.readFileSync("pages/forms/upload.html")
 const download_form = fs.readFileSync("pages/forms/download.html")
 
-const upload_success = fs.readFileSync("pages/upload_success.html")
+const upload_success = fs.readFileSync("pages/upload_success.html", "utf-8")
 
 const error_404 = fs.readFileSync("pages/404.html")
 const error_generic = fs.readFileSync("pages/error.html")
@@ -74,7 +79,8 @@ const server = http.createServer((req, res) => {
     } else if (url == "/file/upload" && req.method.toLowerCase() === "post") {
         const form = formidable({ multiples: true })
 
-        form.parse(req, (err, fields, files) => {
+        form.parse(req, (err, fields, file_data) => {
+            files = file_data.multipleFiles
             if (err) {
                 res.writeHead(500, { 'content-type': 'text/html' });
                 res.write(error_generic)
@@ -92,16 +98,20 @@ const server = http.createServer((req, res) => {
 
             let database_entry = {
                 files: [],
-                time_created: new Date().time()
+                time_created: new Date().getTime()
             }
+            if (!fs.existsSync(directory)) fs.mkdirSync(directory)
 
-            for (let i = 0; i < files.lenght; i++) {
-                if (error) break
+            for (let i = 0; i < files.length; i++) {
+		console.log(files[i])
+                if (error) continue
                 let new_file_path = directory + files[i].name
+		console.log(new_file_path)
                 fs.rename(files[i].path, new_file_path, function(err) {
                     if (err) {
                         console.log(err)
                         error = true
+			i = files.length
                     } else {
                         database_entry.files.push(new_file_path)
                     }
@@ -128,7 +138,7 @@ const server = http.createServer((req, res) => {
             response = upload_success.replace("{NUMBER_OF_FILES_UPLOADED}", files.length).replace("{UPLOAD_CODE}", code) 
             res.writeHead(200, { 'content-type': 'text/html' });
             res.write(response)
-            res.close()
+            res.end()
         })
     
     } else if (url = "/file/download" && req.method.toLowerCase === "post") {
