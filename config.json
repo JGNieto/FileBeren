@@ -1,3 +1,5 @@
 {
-    "port": 80
+    "port": 80,
+    "storage_directory": "/home/storage/",
+    "code_length": 5
 }
