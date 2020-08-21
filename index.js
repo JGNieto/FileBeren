@@ -4,6 +4,7 @@ const http = require('http')
 const fs = require('fs')
 const formidable = require('formidable')
 const { RSA_NO_PADDING } = require('constants')
+const url_decoder = require('url')
 
 let config = JSON.parse(fs.readFileSync("config.json"))
 
@@ -33,6 +34,7 @@ const upload_success = fs.readFileSync("pages/upload_success.html", "utf-8")
 
 const error_404 = fs.readFileSync("pages/404.html")
 const error_generic = fs.readFileSync("pages/error.html")
+const error_bad_code = fs.readFileSync("pages/code_not_found.html")
 
 // CSS
 const floating_labels_css = fs.readFileSync("css/floating-labels.css")
@@ -67,21 +69,22 @@ const pages = {
 }
 
 const server = http.createServer((req, res) => {
-    let url = req.url
+    let url = req.url.toLowerCase()
+    console.log(url)
     if (pages[url] != null) {
         res.writeHead(200, {'Content-Type': pages[url].content_type})
         res.write(pages[url].file)
         res.end()
     
     } else if (url == "/favicon.ico") {
-        res.writeHead(200, {'Content-Type': 'mage/x-icon'})
+        res.writeHead(200, {'Content-Type': 'image/x-icon'})
         fs.createReadStream('assets/favicon.ico').pipe(res)
     } else if (url == "/file/upload" && req.method.toLowerCase() === "post") {
         const form = formidable({ multiples: true })
 
         form.parse(req, (err, fields, file_data) => {
             files = file_data.multipleFiles
-            if (err) {
+            if (err || files.length == 0) {
                 res.writeHead(500, { 'content-type': 'text/html' });
                 res.write(error_generic)
                 res.end()
@@ -98,7 +101,8 @@ const server = http.createServer((req, res) => {
 
             let database_entry = {
                 files: [],
-                time_created: new Date().getTime()
+                time_created: new Date().getTime(),
+                reading: false
             }
             if (!fs.existsSync(directory)) fs.mkdirSync(directory)
 
@@ -113,7 +117,10 @@ const server = http.createServer((req, res) => {
                         error = true
 			i = files.length
                     } else {
-                        database_entry.files.push(new_file_path)
+                        database_entry.files.push({
+                            file_path: new_file_path,
+                            type: files[i].type
+                        })
                     }
                 })
             }
@@ -141,7 +148,28 @@ const server = http.createServer((req, res) => {
             res.end()
         })
     
-    } else if (url = "/file/download" && req.method.toLowerCase === "post") {
+    } else if (url.startsWith("/file/download") && req.method.toLowerCase() === "get") {
+
+        let arguments = url.split("?")
+        if (arguments.length != 2 || !arguments[1].startsWith("code=")) {
+            res.writeHead(400, { 'content-type': 'text/html' });
+            res.write(error_generic)
+            res.end()
+        }
+
+        let code = arguments[1].replace("code=", "")
+
+        if (database[code] == null) {
+            res.writeHead(400, { 'content-type': 'text/html' });
+            res.write(error_bad_code)
+            res.end()
+            return
+        }
+
+        database[code].reading = true
+        res.writeHead(200, {'Content-Type': 'image/x-icon'})
+        fs.createReadStream(database[code].files[0].path).pipe(res)
+        
 
     } else {
         res.writeHead(404, {'Content-Type': 'text/html'})
