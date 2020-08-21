@@ -5,6 +5,7 @@ const fs = require('fs')
 const formidable = require('formidable')
 const { RSA_NO_PADDING } = require('constants')
 const url_decoder = require('url')
+const archiver = require('archiver')
 
 let config = JSON.parse(fs.readFileSync("config.json"))
 
@@ -40,6 +41,8 @@ const error_bad_code = fs.readFileSync("pages/code_not_found.html")
 const floating_labels_css = fs.readFileSync("css/floating-labels.css")
 const bootstrap_min_css = fs.readFileSync("css/bootstrap.min.css")
 
+// JS
+const jquery = fs.readFileSync("js/jquery.min.js")
 
 const pages = {
     "/": {
@@ -65,12 +68,16 @@ const pages = {
     "/css/bootstrap.min.css": {
         file: bootstrap_min_css,
         content_type: "text/css"
+    },
+    "/js/jquery.min.js": {
+        file: jquery,
+        content_type: "text/javascript"
     }
 }
 
 const server = http.createServer((req, res) => {
     let url = req.url.toLowerCase()
-    console.log(url)
+
     if (pages[url] != null) {
         res.writeHead(200, {'Content-Type': pages[url].content_type})
         res.write(pages[url].file)
@@ -84,6 +91,7 @@ const server = http.createServer((req, res) => {
 
         form.parse(req, (err, fields, file_data) => {
             files = file_data.multipleFiles
+            
             if (err || files.length == 0) {
                 res.writeHead(500, { 'content-type': 'text/html' });
                 res.write(error_generic)
@@ -101,33 +109,32 @@ const server = http.createServer((req, res) => {
 
             let database_entry = {
                 files: [],
-                time_created: new Date().getTime(),
-                reading: false
+                time_created: new Date().getTime()
             }
-		console.log(typeof(files))
+
+            let database_files = []
+
             if (!fs.existsSync(directory)) fs.mkdirSync(directory)
 
-		let file_list = []
+            if (files.length == null) files = [files]
 
             for (let i = 0; i < files.length; i++) {
-		console.log(files[i])
                 if (error) continue
                 let new_file_path = directory + files[i].name
-		console.log(new_file_path)
+
                 fs.rename(files[i].path, new_file_path, function(err) {
                     if (err) {
                         console.log(err)
                         error = true
-			i = files.length
-                    }})
-			let file_entry = {
-                            path: new_file_path,
-                            type: files[i].type
-                        }
-		    console.log(file_entry)
-                        file_list.push(file_entry)
-                    
-                
+		            	i = files.length
+                    }
+                })
+
+                let file_entry = {
+                    path: new_file_path,
+                    type: files[i].type
+                }
+                database_files.push(file_entry)
             }
 
             if (error) {
@@ -143,12 +150,13 @@ const server = http.createServer((req, res) => {
                 }
                 return
             }
-		database_entry['files'] = file_list
+
+            database_entry.files = database_files
 
             database[code] = database_entry
             save_database()
 
-            response = upload_success.replace("{NUMBER_OF_FILES_UPLOADED}", files.length).replace("{UPLOAD_CODE}", code) 
+            response = upload_success.replace(/{NUMBER_OF_FILES_UPLOADED}/g, files.length).replace(/{UPLOAD_CODE}/g, code) 
             res.writeHead(200, { 'content-type': 'text/html' });
             res.write(response)
             res.end()
@@ -161,22 +169,26 @@ const server = http.createServer((req, res) => {
             res.writeHead(400, { 'content-type': 'text/html' });
             res.write(error_generic)
             res.end()
+            return
         }
 
         let code = arguments[1].replace("code=", "")
-	console.log(code)
 
-        if (database[code] == null) {
+        if (database[code] == null || database[code].files.length == 0) {
             res.writeHead(400, { 'content-type': 'text/html' });
             res.write(error_bad_code)
             res.end()
             return
         }
 
-        database[code].reading = true
-        res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + database[code].files[0].path.split("/")[database[code].files[0].path.split("/").length-1] })
-        fs.createReadStream(database[code].files[0].path).pipe(res)
+        let db_file = database[code]
         
+        if (db_file.files.length < 2) {
+            res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + database[code].files[0].path.split("/")[database[code].files[0].path.split("/").length-1] })
+            fs.createReadStream(database[code].files[0].path).pipe(res)
+        } else {
+            
+        }
 
     } else {
         res.writeHead(404, {'Content-Type': 'text/html'})

@@ -11,6 +11,21 @@
 
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/floating-labels.css" rel="stylesheet">
+    <script>
+      function copy() {
+        let str = "{UPLOAD_CODE}"
+        const el = document.createElement('textarea');
+        el.value = str;
+        el.setAttribute('readonly', '');
+        el.style.position = 'absolute';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        document.getElementById("copied").style.display = "block"
+      }
+    </script>
   </head>
 
   <body>
@@ -21,7 +36,10 @@
         Enter the following code in the other device.</p>
       </div>
 
-      <span class="btn btn-lg btn-primary btn-block">{UPLOAD_CODE}</span>
+      <span class="btn btn-lg btn-primary btn-block" onclick="copy()">{UPLOAD_CODE}</span>
+      <p class="mt-5 mb-3 text-muted text-center" style="display: none;" id="copied">Copied</p>
+      <p class="mt-5 mb-3 text-muted text-center"><a href="/" >Go back</a></p>
     </div>
+
   </body>
 </html>

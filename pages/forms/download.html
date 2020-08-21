@@ -11,6 +11,7 @@
 
         <link href="/css/bootstrap.min.css" rel="stylesheet">
         <link href="/css/floating-labels.css" rel="stylesheet">
+        <script src="/js/jquery.min.js"></script>
     </head>
 
 
@@ -26,8 +27,18 @@
                 <label for="code">File code</label>
             </div>
 
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Download</button>
+            <button class="btn btn-lg btn-primary btn-block" id="submitCode" type="submit">Download</button>
             <p class="mt-5 mb-3 text-muted text-center"><a href="/" >Go back</a></p>
         </form>
+        <script>
+            $("#submitCode").click(
+                function(e) {   
+                    e.preventDefault();
+                    $("#submitCode").prop('disabled', true);
+                    $("#submitCode").text("Downloading...");
+                    window.location.href = "/file/download?code="+$("#code").val();
+                }
+            );
+        </script>
     </body>
 </html>
