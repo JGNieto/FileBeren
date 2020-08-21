@@ -104,7 +104,10 @@ const server = http.createServer((req, res) => {
                 time_created: new Date().getTime(),
                 reading: false
             }
+		console.log(typeof(files))
             if (!fs.existsSync(directory)) fs.mkdirSync(directory)
+
+		let file_list = []
 
             for (let i = 0; i < files.length; i++) {
 		console.log(files[i])
@@ -116,13 +119,15 @@ const server = http.createServer((req, res) => {
                         console.log(err)
                         error = true
 			i = files.length
-                    } else {
-                        database_entry.files.push({
-                            file_path: new_file_path,
+                    }})
+			let file_entry = {
+                            path: new_file_path,
                             type: files[i].type
-                        })
-                    }
-                })
+                        }
+		    console.log(file_entry)
+                        file_list.push(file_entry)
+                    
+                
             }
 
             if (error) {
@@ -138,6 +143,7 @@ const server = http.createServer((req, res) => {
                 }
                 return
             }
+		database_entry['files'] = file_list
 
             database[code] = database_entry
             save_database()
@@ -150,7 +156,7 @@ const server = http.createServer((req, res) => {
     
     } else if (url.startsWith("/file/download") && req.method.toLowerCase() === "get") {
 
-        let arguments = url.split("?")
+        let arguments = req.url.split("?")
         if (arguments.length != 2 || !arguments[1].startsWith("code=")) {
             res.writeHead(400, { 'content-type': 'text/html' });
             res.write(error_generic)
@@ -158,6 +164,7 @@ const server = http.createServer((req, res) => {
         }
 
         let code = arguments[1].replace("code=", "")
+	console.log(code)
 
         if (database[code] == null) {
             res.writeHead(400, { 'content-type': 'text/html' });
@@ -167,7 +174,7 @@ const server = http.createServer((req, res) => {
         }
 
         database[code].reading = true
-        res.writeHead(200, {'Content-Type': 'image/x-icon'})
+        res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + database[code].files[0].path.split("/")[database[code].files[0].path.split("/").length-1] })
         fs.createReadStream(database[code].files[0].path).pipe(res)
         
 
