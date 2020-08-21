@@ -27,15 +27,29 @@
                 <label for="code">File code</label>
             </div>
 
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="option1" checked>
+                <label class="form-check-label" for="exampleRadios1">
+                  Unzipped (slower)
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios2" value="option2">
+                <label class="form-check-label" for="exampleRadios2">
+                  Zipped (only PC)
+                </label>
+              </div>
+              <br><br>
             <button class="btn btn-lg btn-primary btn-block" id="submitCode" type="submit">Download</button>
             <p class="mt-5 mb-3 text-muted text-center"><a href="/" >Go back</a></p>
         </form>
         <script>
             $("#submitCode").click(
-                function(e) {   
+                function(e) {
                     e.preventDefault();
                     $("#submitCode").prop('disabled', true);
                     $("#submitCode").text("Downloading...");
+                    
                     window.location.href = "/file/download?code="+$("#code").val();
                 }
             );

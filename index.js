@@ -109,7 +109,8 @@ const server = http.createServer((req, res) => {
 
             let database_entry = {
                 files: [],
-                time_created: new Date().getTime()
+                time_created: new Date().getTime(),
+                zipped: false
             }
 
             let database_files = []
@@ -184,7 +185,7 @@ const server = http.createServer((req, res) => {
         let db_file = database[code]
         
         if (db_file.files.length < 2) {
-            res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + database[code].files[0].path.split("/")[database[code].files[0].path.split("/").length-1] })
+            res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + db_file.files[0].path.split("/")[db_file.files[0].path.split("/").length-1] })
             fs.createReadStream(database[code].files[0].path).pipe(res)
         } else {
             

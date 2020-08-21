@@ -11,6 +11,7 @@
 
         <link href="/css/bootstrap.min.css" rel="stylesheet">
         <link href="/css/floating-labels.css" rel="stylesheet">
+        <script src="/js/jquery.min.js"></script>
     </head>
 
 
@@ -26,8 +27,14 @@
                 
             </div>
 
-            <input class="btn btn-lg btn-primary btn-block" type="submit" value="Upload"></input>
+            <input class="btn btn-lg btn-primary btn-block" id="submitBtn" type="submit" value="Upload"></input>
             <p class="mt-5 mb-3 text-muted text-center"><a href="/">Go back</a></p>
         </form>
+        <script>
+            $("#submitBtn").click((e) => {
+                $(this).prop('value', 'Uploading...')
+                $(this).prop("disabled", true)
+            })
+        </script>
     </body>
 </html>
