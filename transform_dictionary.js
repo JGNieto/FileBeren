@@ -6,28 +6,26 @@ let words = {
     spanish: []
 }
 
-const readInterface = readline.createInterface({
-    input: fs.createReadStream('CREA_total.TXT'),
-    output: process.stdout,
-    console: false
-});
+let lines = fs.readFileSync("CREA_total.TXT").toString().split("\n")
 
-let i = 0
+let words_length = 0
 
-readInterface.on('line', (line) => {
+for (let i = 0; i < lines.length; i++) {
+    let line = lines[i]
     try {
         let word = line.split(";")[1].split(" ")[0]
-        i++
+        console.log(i + ": " + word)
         if (i%5000 == 0) fs.writeFileSync("words.json", JSON.stringify(words))
-        if (ascii.test(word)) {
+        if (ascii.test(word) && word.split("").length > 3) {
             words.spanish.push(word)
+            words_length++
         } else {
-            console.log(line + " not accepted due to non-ascii characters.")
+            //console.log(line + " not accepted due to non-ascii characters.")
         }
+        if (words_length > 100000) break
     } catch(e) {
         console.log("Error with line " + line)
     }
-    
-})
 
+}
 fs.writeFileSync("words.json", JSON.stringify(words))

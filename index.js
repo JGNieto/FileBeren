@@ -12,7 +12,7 @@ const words = JSON.parse(fs.readFileSync("words.json"))[config.code_lang]
 
 let words_length = words.length
 
-if (!config.storage_directory.endsWith("/")) config.storage_directory = config.storage_directory + "/"
+if (!config.storage_directory.endsWith(config.directory_char)) config.storage_directory = config.storage_directory + config.directory_char
 
 // Initialise database file if it does not exist:
 
@@ -35,6 +35,8 @@ const upload_form = fs.readFileSync("pages/forms/upload.html")
 const download_form = fs.readFileSync("pages/forms/download.html")
 
 const upload_success = fs.readFileSync("pages/upload_success.html", "utf-8")
+
+const choose_files = fs.readFileSync("pages/choose_files.html", "utf-8")
 
 const error_404 = fs.readFileSync("pages/404.html")
 const error_generic = fs.readFileSync("pages/error.html")
@@ -120,7 +122,7 @@ const server = http.createServer((req, res) => {
                 return
             }
 
-            let directory = config.storage_directory + code + "/"
+            let directory = config.storage_directory + code + config.directory_char
             let error = false
 
             let database_entry = {
@@ -187,7 +189,7 @@ const server = http.createServer((req, res) => {
             let code = arguments[1].replace("code=", "")
 
             if (database[code] == null || database[code].files.length == 0) {
-                res.writeHead(400, { 'content-type': 'text/html' });
+                res.writeHead(400, { 'content-type': 'text/html' })
                 res.write(error_bad_code)
                 res.end()
                 return
@@ -196,10 +198,17 @@ const server = http.createServer((req, res) => {
             let db_file = database[code]
             
             if (db_file.files.length < 2) {
-                res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + db_file.files[0].path.split("/")[db_file.files[0].path.split("/").length-1] })
+                res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + db_file.files[0].path.split(config.directory_char)[db_file.files[0].path.split(config.directory_char).length-1] })
                 fs.createReadStream(database[code].files[0].path).pipe(res)
             } else {
-                // FIXME
+                let page = choose_files
+
+                // FIXME: PROCESS THE LIST OF FILES INTO AN HTML LIST OF HYPERLINKS TO THEIR DOWNLOAD PAGE
+                
+                res.writeHead(400, { 'content-type': 'text/html' })
+                res.write(page)
+                res.end()
+
             }
         } catch(e) {
             res.writeHead(400, { 'content-type': 'text/html' });
@@ -216,7 +225,7 @@ const server = http.createServer((req, res) => {
             let file = null
 
             for (let i = 0; i < database[code].files.length; i++) {
-                if (database[code].files[i].path.split("/")[database[code].files[i].path.split("/").length - 1].toLowerCase == filename.toLowerCase)
+                if (database[code].files[i].path.split(config.directory_char)[database[code].files[i].path.split(config.directory_char).length - 1].toLowerCase == filename.toLowerCase)
                     file = database[code].files[i].path
             }
 
@@ -246,11 +255,34 @@ const server = http.createServer((req, res) => {
             if (db_file.zipped) file_path = db_file.zipdir
             else {
                 let files = db_file.files
-                // FIXME ZIP FILE
+                file_path = config.storage_directory + config.directory_char + code + config.directory_char + code + ".zip"
+                let output = fs.createWriteStream(file_path)
+                let archive = archiver()
+
+                output.on('close', () => {
+                    res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + code + ".zip" })
+                    fs.createReadStream(file_path).pipe(res)                    
+                })
+
+                archiver.on('error', (err) => {
+                    res.writeHead(500, { 'content-type': 'text/html' });
+                    res.write(error_generic)
+                    res.end()
+
+                    console.log(err)
+                })
+
+                archive.pipe(output)
+
+                for (let i = 0; i < files.length; i++) {
+                    archive.append(fs.createReadStream(files[i]), files[i].split(config.directory_char)[files[i].split(config.directory_char).length - 1])
+                }
+
+                archive.finalize()
             }
 
             res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + code + ".zip" })
-            fs.createReadStream(file).pipe(res)
+            fs.createReadStream(file_path).pipe(res)
         } catch(e) {
             res.writeHead(400, { 'content-type': 'text/html' });
             res.write(error_generic)
