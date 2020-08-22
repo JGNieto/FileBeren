@@ -4,5 +4,6 @@
     "code_length": 5,
     "code_lang": "spanish",
     "directory_char": "\\",
-    "minutes_between_deletions": 1440
+    "milliseconds_between_deletion_checks": 3600000,
+    "milliseconds_until_deletion": 86400000
 }

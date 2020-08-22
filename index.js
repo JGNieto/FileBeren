@@ -328,10 +328,27 @@ function save_database() {
 function file_name_from_path(file_path) {
     return file_path.split(config.directory_char)[file_path.split(config.directory_char).length-1]
 }
-if (config.minutes_between_deletions != null) {
-    setInterval(() => {
-        
-    }, config.minutes_between_deletions * 60 * 1000)
+
+try {
+    if (config.milliseconds_between_deletions != null) {
+        setInterval(() => {
+            let time = new Date.getTime()
+            for (let key in database) {
+                if (time - database[key].time >= config.milliseconds_until_deletion) {
+                    let files = database[key].files
+                    for (let i = 0; i < files.length; i++) {
+                        fs.unlinkSync(files[i])
+                    }
+                    fs.rmdirSync(database[key].directory)
+                    delete database[code]
+                }
+            }
+            save_database()
+        }, config.milliseconds_between_deletion_checks)
+    }
+} catch (e) {
+    console.log("Error deleting files.")
+    console.log(e)
 }
 
 server.listen(config.port)
