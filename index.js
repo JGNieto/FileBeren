@@ -3,7 +3,6 @@
 const http = require('http')
 const fs = require('fs')
 const formidable = require('formidable')
-const { RSA_NO_PADDING } = require('constants')
 const url_decoder = require('url')
 const archiver = require('archiver')
 
@@ -15,8 +14,6 @@ let words_length = words.length
 if (!config.storage_directory.endsWith(config.directory_char)) config.storage_directory = config.storage_directory + config.directory_char
 
 // Initialise database file if it does not exist:
-
-
 let database = null
 
 try {
@@ -115,7 +112,7 @@ const server = http.createServer((req, res) => {
                 code = generate_code()
             }
 
-            if (database[code] == null) {
+            if (database[code] != null || code == null) {
                 res.writeHead(500, { 'content-type': 'text/html' });
                 res.write(error_generic)
                 res.end()
@@ -129,7 +126,7 @@ const server = http.createServer((req, res) => {
                 files: [],
                 time_created: new Date().getTime(),
                 zipped: false,
-                zipdir: null
+                zip_path: null
             }
 
             let database_files = []
@@ -203,8 +200,20 @@ const server = http.createServer((req, res) => {
             } else {
                 let page = choose_files
 
-                // FIXME: PROCESS THE LIST OF FILES INTO AN HTML LIST OF HYPERLINKS TO THEIR DOWNLOAD PAGE
-                
+                let list = ""
+
+                for (let i = 0; i < db_file.files.length; i++) {
+                    let file_name = file_name_from_path(db_file.files[i].path)
+                    list += "<li>"
+                    list += "<a href='"
+                    list += "/file/download/fileunzipped/" + file_name + "?code=" + code
+                    list += "'>"
+                    list += file_name
+                    list += "</a></li>"
+                }
+
+                page = page.replace(/{FILE_LIST}/g, list)
+
                 res.writeHead(400, { 'content-type': 'text/html' })
                 res.write(page)
                 res.end()
@@ -217,15 +226,15 @@ const server = http.createServer((req, res) => {
         }
     } else if (url.startsWith("/file/download/fileunzipped") && req.method.toLowerCase() === "get") {
         try {
-            let filename = url.split("/")[4]
-            let code = url.split("?").split("=")[1]
+            let filename = url.split("/")[4].split("?")[0]
+            let code = url.split("?")[1].split("=")[1]
 
             if (database[code] == null) throw Error
 
             let file = null
 
             for (let i = 0; i < database[code].files.length; i++) {
-                if (database[code].files[i].path.split(config.directory_char)[database[code].files[i].path.split(config.directory_char).length - 1].toLowerCase == filename.toLowerCase)
+                if (file_name_from_path(database[code].files[i].path).toLowerCase == filename.toLowerCase)
                     file = database[code].files[i].path
             }
 
@@ -239,7 +248,7 @@ const server = http.createServer((req, res) => {
         }
     } else if (url.startsWith("/file/download/zipped") && req.method.toLowerCase() === "get") {
         try {
-            let code = url.split("?").split("=")[1]
+            let code = url.split("?")[1].split("=")[1]
 
             if (database[code] == null || database[code].files.length == 0) {
                 res.writeHead(400, { 'content-type': 'text/html' });
@@ -252,39 +261,40 @@ const server = http.createServer((req, res) => {
             
             let file_path = null
 
-            if (db_file.zipped) file_path = db_file.zipdir
-            else {
+            if (db_file.zipped) {
+                file_path = db_file.zip_path
+                res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + code + ".zip" })
+                fs.createReadStream(file_path).pipe(res)
+            } else {
                 let files = db_file.files
                 file_path = config.storage_directory + config.directory_char + code + config.directory_char + code + ".zip"
                 let output = fs.createWriteStream(file_path)
-                let archive = archiver()
+                let archive = archiver('zip')
 
                 output.on('close', () => {
+                    database[code].zipped = true
+                    database[code].zip_path = file_path
                     res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + code + ".zip" })
                     fs.createReadStream(file_path).pipe(res)                    
                 })
 
-                archiver.on('error', (err) => {
+                archive.on('error', (err) => {
                     res.writeHead(500, { 'content-type': 'text/html' });
                     res.write(error_generic)
                     res.end()
-
-                    console.log(err)
                 })
 
                 archive.pipe(output)
 
                 for (let i = 0; i < files.length; i++) {
-                    archive.append(fs.createReadStream(files[i]), files[i].split(config.directory_char)[files[i].split(config.directory_char).length - 1])
+                    archive.append(fs.createReadStream(files[i].path), {name: file_name_from_path(files[i].path)})
                 }
 
                 archive.finalize()
             }
-
-            res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + code + ".zip" })
-            fs.createReadStream(file_path).pipe(res)
         } catch(e) {
-            res.writeHead(400, { 'content-type': 'text/html' });
+            console.log(e)
+            res.writeHead(500, { 'content-type': 'text/html' });
             res.write(error_generic)
             res.end()
         }
@@ -313,6 +323,15 @@ function save_database() {
     fs.writeFile("database.json", JSON.stringify(database), (err) => {
         if (err) console.log("Database save failed.\n" + err)
     })
+}
+
+function file_name_from_path(file_path) {
+    return file_path.split(config.directory_char)[file_path.split(config.directory_char).length-1]
+}
+if (config.minutes_between_deletions != null) {
+    setInterval(() => {
+        
+    }, config.minutes_between_deletions * 60 * 1000)
 }
 
 server.listen(config.port)
