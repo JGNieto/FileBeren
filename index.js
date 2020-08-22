@@ -8,6 +8,9 @@ const url_decoder = require('url')
 const archiver = require('archiver')
 
 let config = JSON.parse(fs.readFileSync("config.json"))
+const words = JSON.parse(fs.readFileSync("words.json"))[config.code_lang]
+
+let words_length = words.length
 
 if (!config.storage_directory.endsWith("/")) config.storage_directory = config.storage_directory + "/"
 
@@ -98,10 +101,23 @@ const server = http.createServer((req, res) => {
                 res.end()
             }
 
-            let code = generate_code(config.code_length)
+            let code = get_word(config.code_length)
+            let word_tries = 0
 
-            while (database[code] != null) {
-                code = generate_code(config.code_length) 
+            while (database[code] != null && word_tries < 50) {
+                code = get_word()
+                word_tries++
+            }
+
+            while (database[code] != null && word_tries < 100) {
+                code = generate_code()
+            }
+
+            if (database[code] == null) {
+                res.writeHead(500, { 'content-type': 'text/html' });
+                res.write(error_generic)
+                res.end()
+                return
             }
 
             let directory = config.storage_directory + code + "/"
@@ -110,7 +126,8 @@ const server = http.createServer((req, res) => {
             let database_entry = {
                 files: [],
                 time_created: new Date().getTime(),
-                zipped: false
+                zipped: false,
+                zipdir: null
             }
 
             let database_files = []
@@ -143,7 +160,7 @@ const server = http.createServer((req, res) => {
                 res.write(error_generic)
                 res.end()
                 try {
-                    for (let i = 0; i < files.lenght; i++) {
+                    for (let i = 0; i < files.length; i++) {
                         fs.unlink(files[i].path)
                     }
                 } catch (e) {
@@ -163,34 +180,82 @@ const server = http.createServer((req, res) => {
             res.end()
         })
     
-    } else if (url.startsWith("/file/download") && req.method.toLowerCase() === "get") {
+    } else if (url.startsWith("/file/download/unzipped") && req.method.toLowerCase() === "get") {
+        try {
+            let arguments = req.url.split("?")
 
-        let arguments = req.url.split("?")
-        if (arguments.length != 2 || !arguments[1].startsWith("code=")) {
+            let code = arguments[1].replace("code=", "")
+
+            if (database[code] == null || database[code].files.length == 0) {
+                res.writeHead(400, { 'content-type': 'text/html' });
+                res.write(error_bad_code)
+                res.end()
+                return
+            }
+
+            let db_file = database[code]
+            
+            if (db_file.files.length < 2) {
+                res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + db_file.files[0].path.split("/")[db_file.files[0].path.split("/").length-1] })
+                fs.createReadStream(database[code].files[0].path).pipe(res)
+            } else {
+                // FIXME
+            }
+        } catch(e) {
             res.writeHead(400, { 'content-type': 'text/html' });
             res.write(error_generic)
             res.end()
-            return
         }
+    } else if (url.startsWith("/file/download/fileunzipped") && req.method.toLowerCase() === "get") {
+        try {
+            let filename = url.split("/")[4]
+            let code = url.split("?").split("=")[1]
 
-        let code = arguments[1].replace("code=", "")
+            if (database[code] == null) throw Error
 
-        if (database[code] == null || database[code].files.length == 0) {
+            let file = null
+
+            for (let i = 0; i < database[code].files.length; i++) {
+                if (database[code].files[i].path.split("/")[database[code].files[i].path.split("/").length - 1].toLowerCase == filename.toLowerCase)
+                    file = database[code].files[i].path
+            }
+
+            if (file == null) throw Error
+            res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + filename })
+            fs.createReadStream(file).pipe(res)
+        } catch(e) {
             res.writeHead(400, { 'content-type': 'text/html' });
-            res.write(error_bad_code)
+            res.write(error_generic)
             res.end()
-            return
         }
+    } else if (url.startsWith("/file/download/zipped") && req.method.toLowerCase() === "get") {
+        try {
+            let code = url.split("?").split("=")[1]
 
-        let db_file = database[code]
-        
-        if (db_file.files.length < 2) {
-            res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + db_file.files[0].path.split("/")[db_file.files[0].path.split("/").length-1] })
-            fs.createReadStream(database[code].files[0].path).pipe(res)
-        } else {
+            if (database[code] == null || database[code].files.length == 0) {
+                res.writeHead(400, { 'content-type': 'text/html' });
+                res.write(error_bad_code)
+                res.end()
+                return
+            }
+
+            let db_file = database[code]
             
-        }
+            let file_path = null
 
+            if (db_file.zipped) file_path = db_file.zipdir
+            else {
+                let files = db_file.files
+                // FIXME ZIP FILE
+            }
+
+            res.writeHead(200, {'Content-Type': "application/octet-stream", 'Content-Disposition': 'attachment; filename=' + code + ".zip" })
+            fs.createReadStream(file).pipe(res)
+        } catch(e) {
+            res.writeHead(400, { 'content-type': 'text/html' });
+            res.write(error_generic)
+            res.end()
+        }
     } else {
         res.writeHead(404, {'Content-Type': 'text/html'})
         res.write(error_404)
@@ -208,8 +273,12 @@ function generate_code(length) {
     return result;
 }
 
+function get_word() {
+    return words[Math.floor(Math.random() * words_length) - 1]
+}
+
 function save_database() {
-    fs.writeFileSync("database.json", JSON.stringify(database), (err) => {
+    fs.writeFile("database.json", JSON.stringify(database), (err) => {
         if (err) console.log("Database save failed.\n" + err)
     })
 }

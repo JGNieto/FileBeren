@@ -1,5 +1,6 @@
 {
     "port": 80,
     "storage_directory": "C:\\Users\\J\\Desktop\\FileBeren\\storage",
-    "code_length": 5
+    "code_length": 5,
+    "code_lang": "spanish"
 }
