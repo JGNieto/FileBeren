@@ -7,7 +7,12 @@ const url_decoder = require('url')
 const archiver = require('archiver')
 
 let config = JSON.parse(fs.readFileSync("config.json"))
-const words = JSON.parse(fs.readFileSync("words.json"))[config.code_lang]
+let words = null
+try {
+    if (config.code_lang != "random") words = JSON.parse(fs.readFileSync("words.json"))[config.code_lang]
+} catch (e) {
+    console.log("Specified language is not valid, using random")
+}
 
 let words_length = words.length
 
@@ -102,7 +107,8 @@ const server = http.createServer((req, res) => {
 
             let code = get_word(config.code_length)
             let word_tries = 0
-
+	    
+	    
             while (database[code] != null && word_tries < 50) {
                 code = get_word()
                 word_tries++
@@ -317,6 +323,7 @@ function generate_code(length) {
 }
 
 function get_word() {
+    if (words == null) return generate_code(config.code_length)
     return words[Math.floor(Math.random() * words_length) - 1]
 }
 
