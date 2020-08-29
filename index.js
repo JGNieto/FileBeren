@@ -126,7 +126,8 @@ const server = http.createServer((req, res) => {
                 files: [],
                 time_created: new Date().getTime(),
                 zipped: false,
-                zip_path: null
+                zip_path: null,
+                directory: directory
             }
 
             let database_files = []
@@ -173,7 +174,7 @@ const server = http.createServer((req, res) => {
             database[code] = database_entry
             save_database()
 
-            response = upload_success.replace(/{NUMBER_OF_FILES_UPLOADED}/g, files.length).replace(/{UPLOAD_CODE}/g, code) 
+            response = upload_success.replace(/{NUMBER_OF_FILES_UPLOADED}/g, files.length).replace(/{UPLOAD_CODE}/g, code).replace(/{DELETE_HOURS}/g, config.milliseconds_until_deletion/(60*60*1000))
             res.writeHead(200, { 'content-type': 'text/html' });
             res.write(response)
             res.end()
@@ -330,20 +331,30 @@ function file_name_from_path(file_path) {
 }
 
 try {
-    if (config.milliseconds_between_deletions != null) {
+    if (config.milliseconds_between_deletion_checks != null) {
+	console.log("Preparing deletion interval")
         setInterval(() => {
-            let time = new Date.getTime()
+	    try {
+            console.log("Deleting old files...")
+            let time = new Date().getTime()
             for (let key in database) {
-                if (time - database[key].time >= config.milliseconds_until_deletion) {
+                if (time - database[key].time_created >= config.milliseconds_until_deletion) {
+		    console.log(" - " + key + ":")
                     let files = database[key].files
                     for (let i = 0; i < files.length; i++) {
-                        fs.unlinkSync(files[i])
+			console.log("   - " + files[i].path)
+			if (fs.existsSync(files[i].path)) fs.unlinkSync(files[i].path)
                     }
-                    fs.rmdirSync(database[key].directory)
-                    delete database[code]
+//                    fs.rmdirSync(database[key].directory)
+                    delete database[key]
                 }
             }
+            console.log("Saving dabase after deletion")
             save_database()
+            } catch (e) {
+		    console.log("Error during this deleting round")
+		    console.log(e)
+	    }
         }, config.milliseconds_between_deletion_checks)
     }
 } catch (e) {
