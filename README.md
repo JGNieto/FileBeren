@@ -58,7 +58,7 @@ Open the `config.json` file.
     }
 }
 ```
-- `storage_directory` is the directory where the files will be stored. It is recommended that you use an absolute path and the directory **HAS TO EXIST**, otherwise you will get an error. (A windows path would look something like the following: `C:\\Users\\opensauce42\\FileBeren\\storage`
+- `storage_directory` is the directory where the files will be stored. It is recommended that you use an absolute path and the directory **HAS TO EXIST**, otherwise you will get an error. (A windows path would look something like the following: `C:\\Users\\opensauce42\\FileBeren\\storage`)
 > Note: this directory can be anywhere in the system, but you need to make shure that the user who runs the program has permission to write, read and delete files in it.
 - `code_length` is the length of the codes that identify the uploads. You will understand this better if you use the [live demo](https://file.beren.dev).
 - `code_lang` is used to replace random codes with words from a dictionary. Please, leave it as it is.
