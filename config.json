@@ -10,6 +10,6 @@
     "https": {
         "enabled": false,
         "cert": "/path/to/cert",
-        "key": "/path/to/cert"
+        "key": "/path/to/key"
     }
 }
