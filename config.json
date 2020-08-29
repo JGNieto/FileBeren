@@ -1,9 +1,9 @@
 {
     "port": 80,
-    "storage_directory": "C:\\Users\\J\\Desktop\\FileBeren\\storage",
+    "storage_directory": "/storage/",
     "code_length": 5,
     "code_lang": "spanish",
-    "directory_char": "\\",
+    "directory_char": "/",
     "milliseconds_between_deletion_checks": 3600000,
     "milliseconds_until_deletion": 86400000
 }
