@@ -80,7 +80,10 @@ In order to execute it, run the following command inside the `FileBeren` directo
 
 You probably want the web app to run continuously. There are many approaches you can take to do this. Some of them are [Linux services](https://medium.com/@benmorel/creating-a-linux-service-with-systemd-611b5c8b91d6), [screen](https://linuxize.com/post/how-to-use-linux-screen/) and [tmux](https://linuxize.com/post/getting-started-with-tmux/). Eplore them!
 
-## A small request
+## Contributing to this project
+
+If you want to contribute code, documentation or improvements to this very README, do so by creating a pull request. There is a very good tutorial by GitHub [here](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
+
 Even though this is not a requirement, I kindly ask everyone who deploys this system to [email](mailto:fileberen@beren.dev?subject=Regarding%20FileBeren) me, so that I know how many people use it.
 
 If you think improvements need to be done or if you do not like this piece of software altogether, please [email](mailto:fileberen@beren.dev?subject=I%20not%20like%20FileBeren) me or open an issue.
