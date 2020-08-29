@@ -2,7 +2,7 @@
     "port": 80,
     "storage_directory": "/storage/",
     "code_length": 5,
-    "code_lang": "spanish",
+    "code_lang": "random",
     "directory_char": "/",
     "milliseconds_between_deletion_checks": 3600000,
     "milliseconds_until_deletion": 86400000
