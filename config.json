@@ -1,9 +1,15 @@
 {
-    "port": 80,
-    "storage_directory": "/storage/",
+    "storage_directory": "/home/centos/FileBeren/storage/",
     "code_length": 5,
     "code_lang": "random",
     "directory_char": "/",
     "milliseconds_between_deletion_checks": 3600000,
-    "milliseconds_until_deletion": 86400000
+    "milliseconds_until_deletion": 86400000,
+    "change-port-to-443-if-https-unless-you-know-what-you-are-doing": "and-change-port-to-80-if-http-unless-you-know-what-you-are-doing",
+    "port": 80,
+    "https": {
+        "enabled": false,
+        "cert": "/path/to/cert",
+        "key": "/path/to/cert"
+    }
 }
