@@ -1,12 +1,23 @@
 #!/usr/bin/node
 
-const http = require('http')
 const fs = require('fs')
 const formidable = require('formidable')
 const url_decoder = require('url')
 const archiver = require('archiver')
 
+let http = null
+let https_options = null
+
 let config = JSON.parse(fs.readFileSync("config.json"))
+if (!config.https.enabled) http = require('http')
+else {
+    http = require('https')
+    https_options = {
+        key: fs.readFileSync(config.https.key),
+	cert: fs.readFileSync(config.https.cert)
+    }
+}
+
 let words = null
 let words_length = null
 try {
@@ -84,7 +95,12 @@ const pages = {
     }
 }
 
-const server = http.createServer((req, res) => {
+let server = null
+
+if (config.https.enabled) server = http.createServer(https_options, request_handler)
+else server = http.createServer(request_handler)
+
+function request_handler(req, res) {
     let url = req.url.toLowerCase()
 
     if (pages[url] != null) {
@@ -235,8 +251,9 @@ const server = http.createServer((req, res) => {
         }
     } else if (url.startsWith("/file/download/fileunzipped") && req.method.toLowerCase() === "get") {
         try {
-            let filename = url.split("/")[4].split("?")[0]
-            let code = url.split("?")[1].split("=")[1]
+	    
+            let filename = req.url.split("/")[4].split("?")[0]
+            let code = req.url.split("?")[1].split("=")[1]
 
             if (database[code] == null) throw Error
 
@@ -257,7 +274,7 @@ const server = http.createServer((req, res) => {
         }
     } else if (url.startsWith("/file/download/zipped") && req.method.toLowerCase() === "get") {
         try {
-            let code = url.split("?")[1].split("=")[1]
+            let code = req.url.split("?")[1].split("=")[1]
 
             if (database[code] == null || database[code].files.length == 0) {
                 res.writeHead(400, { 'content-type': 'text/html' });
@@ -312,7 +329,7 @@ const server = http.createServer((req, res) => {
         res.write(error_404)
         res.end()
     }
-})
+}
 
 function generate_code(length) {
     var result           = '';
