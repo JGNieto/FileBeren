@@ -10,8 +10,10 @@ let config = JSON.parse(fs.readFileSync("config.json"))
 let words = null
 let words_length = null
 try {
-    if (config.code_lang != "random") words = JSON.parse(fs.readFileSync("words.json"))[config.code_lang]
-    words = words.length
+    if (config.code_lang != "random") {
+        words = JSON.parse(fs.readFileSync("words.json"))[config.code_lang]
+        words = words.length
+    }
 } catch (e) {
     console.log("Specified language is not valid, using random")
 }
