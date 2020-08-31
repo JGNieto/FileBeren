@@ -5,7 +5,7 @@
 
 ## Helpful Links
 - [Live demo version](https://file.beren.dev/)
-- [Contact me](mailto:fileberen@beren.dev?subject=Regarding%20FileBeren)
+- [Contact me](mailto:javier@beren.dev?subject=Regarding%20FileBeren)
 - [How to create a pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request)
 - [Node.js installation guide](https://nodejs.org/en/download/package-manager/)
 
@@ -19,7 +19,7 @@ If you want to try a demo for yourself, do so at [file.beren.dev](https://file.b
 
 ## Installation
 Installing FileBeren is very simple, just follow the steps below and you will have it going in less than 15 minutes.
-If you need any help do not hesitate to contact me via [email](mailto:fileberen@beren.dev?subject=Regarding%20FileBeren), or simply open an [issue](https://docs.github.com/en/github/managing-your-work-on-github/about-issues) in this repository.
+If you need any help do not hesitate to contact me via [email](mailto:javier@beren.dev?subject=Regarding%20FileBeren), or simply open an [issue](https://docs.github.com/en/github/managing-your-work-on-github/about-issues) in this repository.
 
 ### 1. Installing node.js
 FileBeren has been programmed using Node.JS. You can install it on any operating system in the following [link](https://nodejs.org/en/download/package-manager/). 
