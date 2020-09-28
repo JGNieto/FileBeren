@@ -24,7 +24,7 @@ If you need any help do not hesitate to contact me via [email](mailto:javier@ber
 ### 1. Installing node.js
 FileBeren has been programmed using Node.JS. You can install it on any operating system in the following [link](https://nodejs.org/en/download/package-manager/). 
 
-This project has been developed on Ubuntu and Windows, and the demo runs Centos. It has been tested on node `10.22` and `12.8.3`, but any version newer than 10 should word.
+This project has been developed on Ubuntu and Windows, and the demo runs Centos. It has been tested on node `10.22` and `12.8.3`, but any version newer than 10 should work.
 
 ### 2. Installing FileBeren
 
