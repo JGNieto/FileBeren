@@ -4,7 +4,6 @@
 [![Preview 0](https://i.gyazo.com/846571d05b77d87aea79e3f1f0a364d4.png)](https://file.beren.dev)
 
 ## Helpful Links
-- [Live demo version](https://file.beren.dev/)
 - [Contact me](mailto:javier@beren.dev?subject=Regarding%20FileBeren)
 - [How to create a pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request)
 - [Node.js installation guide](https://nodejs.org/en/download/package-manager/)
@@ -15,8 +14,6 @@ Welcome to FileBeren, an open source web app to be installed locally whose purpo
 
 It is true that FTP can be used for this purpose, but it requires a special app or program, knowing the other device's IP address and it lacks the simplicity of opening a browser, uploading some files, getting a code, typing it into the other device and simply downloading them. No zipping, no IPs, no special apps, no ridiculously small limits and no hassles, it just works.
 
-If you want to try a demo for yourself, do so at [file.beren.dev](https://file.beren.dev)
-
 ## Installation
 Installing FileBeren is very simple, just follow the steps below and you will have it going in less than 15 minutes.
 If you need any help do not hesitate to contact me via [email](mailto:javier@beren.dev?subject=Regarding%20FileBeren), or simply open an [issue](https://docs.github.com/en/github/managing-your-work-on-github/about-issues) in this repository.
@@ -24,7 +21,7 @@ If you need any help do not hesitate to contact me via [email](mailto:javier@ber
 ### 1. Installing node.js
 FileBeren has been programmed using Node.JS. You can install it on any operating system in the following [link](https://nodejs.org/en/download/package-manager/). 
 
-This project has been developed on Ubuntu and Windows, and the demo runs Centos. It has been tested on node `10.22` and `12.8.3`, but any version newer than 10 should work.
+This project has been developed on Ubuntu and Windows, and also works on Centos. It has been tested on node `10.22` and `12.8.3`, but any version newer than 10 should work.
 
 ### 2. Installing FileBeren
 
@@ -60,7 +57,7 @@ Open the `config.json` file.
 ```
 - `storage_directory` is the directory where the files will be stored. It is recommended that you use an absolute path and the directory **HAS TO EXIST**, otherwise you will get an error. (A windows path would look something like the following: `C:\\Users\\opensauce42\\FileBeren\\storage`)
 > Note: this directory can be anywhere in the system, but you need to ensure that the user who runs the program has permission to write, read and delete files in it.
-- `code_length` is the length of the codes that identify the uploads. You will understand this better if you use the [live demo](https://file.beren.dev).
+- `code_length` is the length of the codes that identify the uploads. You will understand this better if you try yourself.
 - `code_lang` is used to replace random codes with words from a dictionary. Please, leave it as it is.
 - `directory_char` is the character, specific to the operating system, that separates directory (i.e. windows' is `\\` and linux's is `/`).
 - `milliseconds_between_deletion_checks` is the number of milliseconds between the times when the program runs through the list of uploads and deletes the ones that are too old. It is recommended that you live it as it is (1 hour).
@@ -68,7 +65,7 @@ Open the `config.json` file.
 - `port` is the port where the website listens. It is strongly recommended that if you use http, you leave it at 80 and that if you use https you change it to 443.
 
 #### HTTPS configuration:
-If you are in a local network it is harder to set up https, but it is an option nevertheless (partly because choice is good and partly because it was necessary for the demo).
+If you are in a local network it is harder to set up https, but it is an option nevertheless.
 
 If you want to use it just set `enabled` to true and specify where the key and the cert are located.
 
