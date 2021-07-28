@@ -1,7 +1,7 @@
 
 # FileBeren
 
-[![Preview 0](https://i.gyazo.com/846571d05b77d87aea79e3f1f0a364d4.png)](https://file.beren.dev)
+[![Preview 0](https://i.gyazo.com/846571d05b77d87aea79e3f1f0a364d4.png)](https://github.com/BERENGENITA/FileBeren)
 
 ## Helpful Links
 - [Contact me](mailto:javier@beren.dev?subject=Regarding%20FileBeren)
